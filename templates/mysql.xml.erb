@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<!--
+
+ ATTENTION: This file is managed in puppet.  Local changes will be discarded.
+
+-->
+
+<service_bundle type='manifest' name='mysql'>
+
+<service name='site/mysql' type='service' version='1'>
+
+    <!--
+        Wait for network interfaces to be initialized.
+    -->
+    <dependency
+        name='network'
+        grouping='require_all'
+        restart_on='none'
+        type='service'>
+        <service_fmri value='svc:/milestone/network:default' />
+    </dependency> 
+
+	<!--
+	   Wait for all local filesystems to be mounted.
+	-->
+    <dependency
+        name='filesystem-local'
+        grouping='require_all'
+        restart_on='none'
+        type='service'>
+        <service_fmri value='svc:/system/filesystem/local:default' />
+    </dependency> 
+
+    <exec_method
+        type='method'
+        name='start'
+        exec='/lib/svc/method/svc-mysql start'
+        timeout_seconds='300' />
+
+
+    <exec_method
+        type='method'
+        name='stop'
+        exec='/lib/svc/method/svc-mysql stop'
+        timeout_seconds='300' />
+
+    <exec_method
+        type='method'
+        name='restart'
+        exec='/lib/svc/method/svc-mysql restart'
+        timeout_seconds='360' />
+
+
+    <instance name='<%= name %>' enabled='false'>
+
+        <method_context working_directory='/opt/mysql/<%= mysqldir %>' >
+            <method_credential user='mysql' group='mysql' />
+        </method_context>
+
+        <property_group  name='mysql' type='application'>
+            <propval name='bin' type='astring' value='/opt/mysql/<%= mysqldir %>/bin' />
+            <propval name='defaults' type='astring' value='/etc/my.cnf-<%= name %>' />
+            <propval name='value_authorization' type='astring' 
+                    value='solaris.smf.value.sun-mysql/default' /> 
+            <propval name='action_authorization' type='astring' 
+                    value='solaris.smf.manage.sun-mysql/default' />
+        </property_group>
+
+   </instance>
+
+    <stability value='Evolving' />
+
+    <template>
+        <common_name>
+            <loctext xml:lang='C'>
+                MySQL RDBMS
+            </loctext>
+        </common_name>
+        <documentation>
+            <manpage title='MySQL Server V4.1' section='1' />
+            <doc_link name='mysql.com' uri='http://dev.mysql.com/docs' />
+        </documentation>
+    </template>
+
+</service>
+
+</service_bundle>
